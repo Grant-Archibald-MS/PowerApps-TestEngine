@@ -76,6 +76,9 @@ namespace Microsoft.PowerApps.TestEngine.PowerApps
         {
             try
             {
+                //TODO
+                await Task.Delay(3000);
+                return await Task.FromResult<bool>(true);
                 var expression = "PowerAppsTestEngine.getAppStatus()";
                 return (await _testInfraFunctions.RunJavascriptAsync<string>(expression)) == "Idle";
             }

@@ -5,6 +5,7 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.PowerApps.TestEngine.Config;
+using Microsoft.PowerApps.TestEngine.PowerApps;
 using Microsoft.PowerApps.TestEngine.Reporting;
 using Microsoft.PowerApps.TestEngine.System;
 
@@ -78,21 +79,28 @@ namespace Microsoft.PowerApps.TestEngine
                     throw new ArgumentNullException(nameof(testConfigFile));
                 }
 
-                if (string.IsNullOrEmpty(environmentId))
+                if (string.IsNullOrEmpty(environmentId) && !PowerAppsUrlMapper.IsModelApplication(domain))
                 {
                     Logger.LogError("Environment id cannot be null");
                     throw new ArgumentNullException(nameof(environmentId));
                 }
 
-                if (string.IsNullOrEmpty(tenantId))
+                if (string.IsNullOrEmpty(tenantId) && !PowerAppsUrlMapper.IsModelApplication(domain))
                 {
                     Logger.LogError("Tenant id cannot be null");
                     throw new ArgumentNullException(nameof(tenantId));
                 }
 
                 _state.ParseAndSetTestState(testConfigFile);
-                _state.SetEnvironment(environmentId);
-                _state.SetTenant(tenantId);
+
+                if ( !string.IsNullOrEmpty(environmentId)) {
+                    _state.SetEnvironment(environmentId);
+                }
+                
+                if ( !string.IsNullOrEmpty(tenantId)) {
+                    _state.SetTenant(tenantId);
+                }
+                
                 _state.SetDomain(domain);
 
                 Logger.LogDebug($"Using domain: {domain}");

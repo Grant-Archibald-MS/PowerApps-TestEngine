@@ -15,7 +15,9 @@ function parseControl(controlName, controlObject) {
         });
     }
 
-    var componentBindingContext = AppMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(controlName);
+    var appMagic = getAppMagic()
+
+    var componentBindingContext = appMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(controlName);
     if (componentBindingContext) {
         var componentChildrenControlContext = componentBindingContext.controlContexts;
         var componentChildrenControlNames = Object.keys(componentChildrenControlContext);
@@ -43,8 +45,10 @@ function parseControl(controlName, controlObject) {
 
 function buildControlObjectModel() {
 
+    var appMagic = getAppMagic()
+
     var controls = [];
-    var controlContext = AppMagic.Controls.GlobalContextManager.bindingContext.controlContexts;
+    var controlContext = appMagic.Controls.GlobalContextManager.bindingContext.controlContexts;
     var controlNames = Object.keys(controlContext);
     controlNames.forEach((controlName) => {
         var control = controlContext[controlName];
@@ -61,7 +65,9 @@ function fetchArrayItemCount(itemPath) {
         throw "Not a gallery, no item count available. Most likely a component";
     }
 
-    var replicatedContexts = AppMagic.Controls.GlobalContextManager.bindingContext.replicatedContexts
+    var appMagic = getAppMagic();
+
+    var replicatedContexts = appMagic.Controls.GlobalContextManager.bindingContext.replicatedContexts
 
     if (itemPath.parentControl && itemPath.parentControl.index !== null) {
         // Nested gallery - Power Apps only supports one level of nesting so we don't have to go recursively to find it
@@ -81,7 +87,9 @@ function fetchArrayItemCount(itemPath) {
 }
 
 function getBindingContext(itemPath) {
-    var bindingContext = AppMagic.Controls.GlobalContextManager.bindingContext;
+    var appMagic = getAppMagic()
+
+    var bindingContext = appMagic.Controls.GlobalContextManager.bindingContext;
 
     if (itemPath.parentControl) {
         // Control is inside a component or gallery
@@ -94,8 +102,8 @@ function getBindingContext(itemPath) {
         return bindingContext.replicatedContexts[managerId].bindingContextAt(itemPath.index);
     }
 
-    var componentBindingContext = AppMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.controlName);
-
+    var componentBindingContext = appMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.controlName);
+.
     if (typeof componentBindingContext !== 'undefined') {
         // Component control
         return componentBindingContext;
@@ -115,16 +123,18 @@ function getPropertyValueFromControl(itemPath) {
 }
 
 function selectControl(itemPath) {
-    var screenId = AppMagic.AuthoringTool.Runtime.getNamedControl(AppMagic.AuthoringTool.Runtime.getCurrentScreenName()).OpenAjax.uniqueId;
+    var appMagic = getAppMagic();
+
+    var screenId = appMagic.AuthoringTool.Runtime.getNamedControl(appMagic.AuthoringTool.Runtime.getCurrentScreenName()).OpenAjax.uniqueId;
 
     if (itemPath.parentControl && itemPath.parentControl.index !== null ) {
             // Gallery
-        var bindingContext = AppMagic.Controls.GlobalContextManager.bindingContext;
+        var bindingContext = appMagic.Controls.GlobalContextManager.bindingContext;
         if (itemPath.parentControl.parentControl) {
             // Nested gallery
             bindingContext = getBindingContext(itemPath.parentControl);
             var currentControl = bindingContext.controlContexts[itemPath.controlName].controlWidget;
-            return AppMagic.Functions.select(null,
+            return appMagic.Functions.select(null,
                                     bindingContext,
                                     currentControl.control,
                                     null, // row number
@@ -135,50 +145,54 @@ function selectControl(itemPath) {
             // One level gallery - the nested gallery approach doesn't work for one level so we have to do it differently
             // select function is starts with 1, while the C# code indexes from 0
             rowOrColumnNumber = itemPath.parentControl.index + 1;
-            return AppMagic.Functions.select(null,
+            return appMagic.Functions.select(null,
                 bindingContext,
-                AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.parentControl.controlName),
+                appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.parentControl.controlName),
                 rowOrColumnNumber,
-                AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName).OpenAjax._icontrol,
+                appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName).OpenAjax._icontrol,
                 screenId)
         }        
     }
 
     if (itemPath.parentControl) {
         // Component
-        var bindingContext = AppMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.parentControl.controlName);
+        var bindingContext = appMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.parentControl.controlName);
         var buttonWidget = bindingContext.controlContexts[itemPath.controlName].controlWidget;
         var controlContext = buttonWidget.getOnSelectControlContext(bindingContext);
         buttonWidget.select(controlContext);
         return true;
     }
 
-    return AppMagic.Functions.select(null,
-        AppMagic.Controls.GlobalContextManager.bindingContext,
-        AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName),
+    return appMagic.Functions.select(null,
+        appMagic.Controls.GlobalContextManager.bindingContext,
+        appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName),
         null,
         null,
         screenId);
 }
 
 function setPropertyValueForControl(itemPath, value) {
+    var appMagic = getAppMagic()
+
     if (itemPath.parentControl && itemPath.parentControl.index !== null) {
         // Gallery & Nested gallery
         var galleryBindingContext = getBindingContext(itemPath.parentControl);     
-        return AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, galleryBindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, galleryBindingContext)
+        return appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, galleryBindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, galleryBindingContext)
     }
 
     if (itemPath.parentControl) {
         // Component
-        var componentBindingContext = AppMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.parentControl.controlName);
-        return (AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, componentBindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, componentBindingContext));
+        var componentBindingContext = appMagic.Controls.GlobalContextManager.bindingContext.componentBindingContexts.lookup(itemPath.parentControl.controlName);
+        return (appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, componentBindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, componentBindingContext));
     }
     
-    return AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, AppMagic.Controls.GlobalContextManager.bindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, AppMagic.Controls.GlobalContextManager.bindingContext);
+    return appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, appMagic.Controls.GlobalContextManager.bindingContext).OpenAjax.setPropertyValueInternal(itemPath.propertyName, value, appMagic.Controls.GlobalContextManager.bindingContext);
 }
 
 function interactWithControl(itemPath, value) {
-    var e = AppMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, AppMagic.Controls.GlobalContextManager.bindingContext).OpenAjax.interactWithControlAsync(AppMagic.Controls.GlobalContextManager.bindingContext.controlContexts[itemPath.controlName], value).then(() => true,() => false);
+    var appMagic = getAppMagic()
+
+    var e = appMagic.AuthoringTool.Runtime.getNamedControl(itemPath.controlName, appMagic.Controls.GlobalContextManager.bindingContext).OpenAjax.interactWithControlAsync(appMagic.Controls.GlobalContextManager.bindingContext.controlContexts[itemPath.controlName], value).then(() => true,() => false);
 
     return e._value;
 }

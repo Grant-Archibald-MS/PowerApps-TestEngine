@@ -20,10 +20,15 @@ namespace Microsoft.PowerApps.TestEngine.PowerApps
             _singleTestInstanceState = singleTestInstanceState;
         }
 
+        public static bool IsModelApplication(string domain) {
+            return !string.IsNullOrEmpty(domain) && domain.IndexOf("dynamics.com") >= 0;
+        }
+
         public string GenerateTestUrl(string domain, string additionalQueryParams)
         {
+            
             var environment = _testState.GetEnvironment();
-            if (string.IsNullOrEmpty(environment))
+            if (string.IsNullOrEmpty(environment) && !IsModelApplication(domain) )
             {
                 _singleTestInstanceState.GetLogger().LogError("Environment cannot be empty.");
                 throw new InvalidOperationException();
@@ -43,6 +48,11 @@ namespace Microsoft.PowerApps.TestEngine.PowerApps
             {
                 _singleTestInstanceState.GetLogger().LogError("At least one of the App Logical Name or App Id must be defined.");
                 throw new InvalidOperationException();
+            }
+
+            
+            if ( IsModelApplication(domain) ) {
+                return $"https://{domain}/main.aspx?appid={appId}&pagetype=custom&name={appLogicalName}";
             }
 
             var tenantId = _testState.GetTenant();
