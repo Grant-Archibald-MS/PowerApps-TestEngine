@@ -386,5 +386,11 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
 
             logger.LogDebug("Logged in successfully.");
         }
+
+        public async Task PauseAsync()
+        {
+            ValidatePage();
+            await Page.PauseAsync();
+        }
     }
 }

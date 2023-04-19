@@ -89,5 +89,11 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         /// <param name="value">Value to fill in</param>
         /// <returns>Task</returns>
         public Task HandleUserPasswordScreen(string selector, string value, string desiredUrl);
+
+        /// <summary>
+        /// Pause the test infrastructure, useful when headless mode is false to view and interact with the active page
+        /// </summary>
+        /// <returns>Task</returns>
+        public Task PauseAsync();
     }
 }
