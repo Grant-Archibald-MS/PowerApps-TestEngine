@@ -1,0 +1,26 @@
+testSuite:
+  testSuiteName: testPlan Template
+  testSuiteDescription: testPlan template for written own test steps
+  persona: User1
+  appLogicalName: new_buttonclicker_0a877
+
+  testCases:
+    - testCaseName: Navigate Example
+      testCaseDescription: Navigate example
+      testSteps: |
+        = PlaywrightAction("https://make.powerapps.com", "Navigate");
+          PlaywrightAction("span:has-text('Power Apps')", "Wait");
+
+testSettings:
+  headless: false
+  locale: "en-US"
+  recordVideo: true
+  browserConfigurations:
+    - browser: Chromium
+
+environmentVariables:
+  users:
+    - personaName: User1
+      emailKey: user1Email
+      passwordKey: user1Password
+

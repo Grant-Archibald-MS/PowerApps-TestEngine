@@ -95,5 +95,12 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         /// </summary>
         /// <returns>Task</returns>
         public Task PauseAsync();
+
+        /// <summary>
+        /// Waits until locator can be found
+        /// </summary>
+        /// <param name="locator">Locator to find element</param>
+        /// <returns>Task</returns>
+        public Task WaitAsync(string locator);
     }
 }

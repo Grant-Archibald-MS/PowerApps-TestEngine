@@ -55,6 +55,7 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx
             powerFxConfig.AddFunction(new AssertFunction(Logger));
             powerFxConfig.AddFunction(new SetPropertyFunction(_powerAppFunctions, Logger));
             powerFxConfig.AddFunction(new PauseFunction(_testInfraFunctions, _testState, Logger));
+            powerFxConfig.AddFunction(new PlaywrightActionFunction(_testInfraFunctions, _testState, Logger));
             
             WaitRegisterExtensions.RegisterAll(powerFxConfig, _testState.GetTimeout(), Logger);
 

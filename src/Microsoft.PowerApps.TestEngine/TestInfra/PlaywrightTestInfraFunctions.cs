@@ -392,5 +392,12 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
             ValidatePage();
             await Page.PauseAsync();
         }
+
+        
+        public async Task WaitAsync(string locator)
+        {
+            ValidatePage();
+            await Page.Locator(locator).WaitForAsync();
+        }
     }
 }
