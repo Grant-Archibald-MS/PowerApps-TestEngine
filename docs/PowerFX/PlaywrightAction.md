@@ -33,5 +33,4 @@ PlaywrightAction(locator, action, value)
 
 `PlaywrightAction("https://admin.powerplatform.microsoft.com/environments/environment/{EnvironmentId}/hub", "Navigate")`
 
-
-`PlaywrightAction("button::hasText('Open')", "Click")`
+`PlaywrightAction("button:has-text('Open')", "Click")`
