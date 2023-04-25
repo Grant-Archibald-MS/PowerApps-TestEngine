@@ -22,9 +22,10 @@ PlaywrightAction(locator, action)
     "Uncheck" - Ensure that checkbox or radio element is unchecked
     "Wait" - Wait until locator exists
 
-PlaywrightAction(locator, action, value)
+PlaywrightActionValue(locator, action, value)
 
 - action: Contains string of the locator action to execute. For example
+    "Screenshot" create screenshot file of the first matching locator 
     "Fill" - Set a value to the input field
     "SelectOption" - Selects option or options (comma delimited)
 - value: Text value of action
