@@ -29,6 +29,10 @@ PlaywrightAction(locator, action, value)
     "SelectOption" - Selects option or options (comma delimited)
 - value: Text value of action
 
+- ## Sample
+
+The [Playwright Action](../../samples/playwrightaction/testPlan.fx.yaml) sample provides a work in progress example of using the PlaywrightAction function.
+
 ## Examples
 
 `PlaywrightAction("https://admin.powerplatform.microsoft.com/environments/environment/{EnvironmentId}/hub", "Navigate")`

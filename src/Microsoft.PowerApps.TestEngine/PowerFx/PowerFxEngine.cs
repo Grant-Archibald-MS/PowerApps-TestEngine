@@ -56,6 +56,7 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx
             powerFxConfig.AddFunction(new SetPropertyFunction(_powerAppFunctions, Logger));
             powerFxConfig.AddFunction(new PauseFunction(_testInfraFunctions, _testState, Logger));
             powerFxConfig.AddFunction(new PlaywrightActionFunction(_testInfraFunctions, _testState, Logger));
+            powerFxConfig.AddFunction(new PlaywrightActionValueFunction(_testInfraFunctions, _singleTestInstanceState, _fileSystem, _testState, Logger));
             
             WaitRegisterExtensions.RegisterAll(powerFxConfig, _testState.GetTimeout(), Logger);
 
@@ -141,6 +142,10 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx
             {
                 Logger.LogError("Engine is null, make sure to call Setup first");
                 throw new InvalidOperationException();
+            }
+
+            if ( _testState.GetTestSettings().DisablePowerFxModel ) {
+                return;
             }
 
             await _powerAppFunctions.CheckAndHandleIfLegacyPlayerAsync();

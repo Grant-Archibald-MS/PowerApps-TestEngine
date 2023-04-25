@@ -44,6 +44,14 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         public Task ScreenshotAsync(string screenshotFilePath);
 
         /// <summary>
+        /// Takes a screenshot
+        /// </summary>
+        /// <param name="selector">The selector to screenshot</param>
+        /// <param name="screenshotFilePath">Path for screenshot file</param>
+        /// <returns>Task</returns>
+        public Task ScreenshotAsync(string selector, string screenshotFilePath);
+
+        /// <summary>
         /// Fills in input element
         /// </summary>
         /// <param name="selector">Selector to find element</param>
@@ -102,5 +110,12 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         /// <param name="locator">Locator to find element</param>
         /// <returns>Task</returns>
         public Task WaitAsync(string locator);
+
+        /// <summary>
+        /// Check if locator can be found
+        /// </summary>
+        /// <param name="locator">Locator to find element</param>
+        /// <returns>Task</returns>
+        public Task<bool> ExistsAsync(string locator);
     }
 }
