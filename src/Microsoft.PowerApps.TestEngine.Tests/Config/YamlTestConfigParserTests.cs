@@ -166,6 +166,38 @@ environmentVariables:
         }
 
         [Fact]
+        public void YamlTestConfigParserParseMockBatch()
+        {
+            var mockFileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+            var parser = new YamlTestConfigParser(mockFileSystem.Object);
+            var yamlFile = $@"testSuite:
+  testSuiteName: Connector App
+  testSuiteDescription: Verifies that you can mock network requests
+  persona: User1
+  appLogicalName: new_connectorapp_da583
+  networkRequestMocks:
+    - requestURL: https://*.azure-apim.net/invoke
+      batchRequestURL: users
+      method: POST
+      headers:
+        x-ms-request-method: GET
+      responseDataFile: /mySampleFile.json";
+
+            var filePath = "testplan.fx.yaml";
+            mockFileSystem.Setup(f => f.ReadAllText(It.IsAny<string>())).Returns(yamlFile);
+            var testPlan = parser.ParseTestConfig<TestPlanDefinition>(filePath);
+            Assert.NotNull(testPlan);
+            Assert.Equal("Connector App", testPlan.TestSuite?.TestSuiteName);
+            Assert.Equal("Verifies that you can mock network requests", testPlan.TestSuite?.TestSuiteDescription);
+            Assert.Equal("User1", testPlan.TestSuite?.Persona);
+            Assert.Equal("new_connectorapp_da583", testPlan.TestSuite?.AppLogicalName);
+            Assert.Equal("https://*.azure-apim.net/invoke", testPlan.TestSuite?.NetworkRequestMocks?[0].RequestURL);
+            Assert.Equal("users", testPlan.TestSuite?.NetworkRequestMocks?[0].BatchRequestURL);
+            Assert.Equal("POST", testPlan.TestSuite?.NetworkRequestMocks?[0].Method);
+            Assert.Equal("/mySampleFile.json", testPlan.TestSuite?.NetworkRequestMocks?[0].ResponseDataFile);
+        }
+
+        [Fact]
         public void YamlTestConfigParserParseTestPlanWithLocaleTest()
         {
             var mockFileSystem = new Mock<IFileSystem>(MockBehavior.Strict);

@@ -13,6 +13,10 @@ namespace Microsoft.PowerApps.TestEngine.Config
         /// </summary>
         public string RequestURL { get; set; } = "";
         /// <summary>
+        /// Gets or sets the batch request URL.
+        /// </summary>
+        public string BatchRequestURL { get; set; } = "";
+        /// <summary>
         /// Gets or sets the data sent back in response.
         /// </summary>
         public string ResponseDataFile { get; set; } = "";

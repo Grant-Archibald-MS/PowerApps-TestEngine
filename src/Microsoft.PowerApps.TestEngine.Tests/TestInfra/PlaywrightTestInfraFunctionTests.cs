@@ -618,5 +618,74 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
             MockRoute.Verify(x => x.ContinueAsync(It.IsAny<RouteContinueOptions>()), Times.Once);
         }
 
+        [Fact]
+        public async Task RouteNetworkRequestBatchTest()
+        {
+            var requestHeader = new Dictionary<string, string>();
+            var requestBody = @"--batch_6acac21a-8bc8-4bcc-aa3a-421d7cc8aa43
+Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+GET systemusers%286bfb10f5-395b-ed11-9562-000d3a5c07f5%29/systemuserroles_association?%24select=roleid HTTP/1.1
+Accept: application/json
+Prefer: odata.maxpagesize=2000,odata.include-annotations=*
+
+--batch_6acac21a-8bc8-4bcc-aa3a-421d7cc8aa43--";
+            var responseBody = @"Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+HTTP/1.1 200 OK
+Content-Type: application/json; odata.metadata=minimal
+OData-Version: 4.0
+Preference-Applied: odata.include-annotations=""*"",odata.maxpagesize=2000
+
+{
+    ""@odata.context"": ""https://contoso.crm.dynamics.com/api/data/v9.0/$metadata#roles(roleid)"",
+    ""@Microsoft.Dynamics.CRM.totalrecordcount"": -1,
+    ""@Microsoft.Dynamics.CRM.totalrecordcountlimitexceeded"": false,
+    ""value"": [
+        {
+            ""@odata.etag"": ""W/\""1655761\"""",
+            ""roleid"": ""66fb2000-b5cd-eb11-bacc-000d3a272399""
+        },
+        {
+            ""@odata.etag"": ""W/\""2300353\"""",
+            ""roleid"": ""a37d4a43-4f4c-ed11-bba2-000d3a3772e9""
+        },
+        {
+            ""@odata.etag"": ""W/\""1656147\"""",
+            ""roleid"": ""519502c3-98bd-eb11-bacc-000d3a44b03c""
+        },
+        {
+            ""@odata.etag"": ""W/\""1656607\"""",
+            ""roleid"": ""aeea0ddc-98bd-eb11-bacc-000d3a44b03c""
+        }
+    ]
+}";
+            var requestMethod = "POST";
+
+            var mock = new NetworkRequestMock()
+            {
+                RequestURL = "https://make.powerapps.com",
+                BatchRequestURL = "systemusers",
+                Method = requestMethod,
+                Headers = requestHeader,
+                ResponseDataFile = "response.json"
+            };
+
+            MockFileSystem.Setup(x => x.ReadAllText(mock.RequestBodyFile)).Returns(requestBody);
+            MockFileSystem.Setup(x => x.ReadAllText(mock.ResponseDataFile)).Returns(responseBody);
+            MockRoute.Setup(x => x.Request).Returns(MockRequest.Object);
+            MockRequest.Setup(x => x.Method).Returns(requestMethod);
+            MockRequest.Setup(x => x.PostData).Returns(requestBody);
+            MockRoute.Setup(x => x.FulfillAsync(It.IsAny<RouteFulfillOptions>())).Returns(Task.FromResult<IResponse?>(MockResponse.Object));
+           
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, browserContext: MockBrowserContext.Object);
+
+            // Test fulfilling route's request with given response
+            await playwrightTestInfraFunctions.RouteNetworkRequest(MockRoute.Object, mock);
+        }
+
     }
 }

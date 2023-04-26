@@ -170,9 +170,35 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
                 }
             }
 
+            if ( !string.IsNullOrEmpty(mock.BatchRequestURL)) {
+                using ( var reader = new StringReader(route.Request.PostData)) {
+                    bool found = false;
+                    while ( reader.Peek() > 0 && !found ) {
+                        var line = reader.ReadLine();
+                        if ( line.StartsWith("GET ") && line.Contains(mock.BatchRequestURL))
+                        {
+                            found = true;
+                        }
+                    }
+                    notMatch = notMatch || !found;
+                }
+            }
+
             if (!notMatch)
             {
-                await route.FulfillAsync(new RouteFulfillOptions { Path = mock.ResponseDataFile });
+                if ( !string.IsNullOrEmpty(mock.BatchRequestURL)) {
+                    var body = _fileSystem.ReadAllText(mock.ResponseDataFile);
+                    var request = route.Request.PostData;
+                    
+                    using ( var reader = new StringReader(request)) {
+                        var batchId = await reader.ReadLineAsync();
+                        var batchResponseId = batchId.Replace("--batch_","--batchresponse_");
+                        body = batchResponseId + "\r\n" + body + "\r\n" + batchResponseId + "--";
+                        await route.FulfillAsync(new RouteFulfillOptions { Body = body });
+                    }
+                } else {
+                    await route.FulfillAsync(new RouteFulfillOptions { Path = mock.ResponseDataFile });
+                } 
             }
             else
             {
