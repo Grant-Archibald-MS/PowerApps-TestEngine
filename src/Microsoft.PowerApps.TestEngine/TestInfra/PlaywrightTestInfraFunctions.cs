@@ -273,6 +273,19 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
             await Page.ScreenshotAsync(new PageScreenshotOptions() { Path = $"{screenshotFilePath}" });
         }
 
+        public async Task ScreenshotAsync(string selector, string screenshotFilePath)
+        {
+            ValidatePage();
+            if (!_fileSystem.IsValidFilePath(screenshotFilePath))
+            {
+                throw new InvalidOperationException("screenshotFilePath must be provided");
+            }
+
+            if ( await Page.Locator(selector).CountAsync() >= 0 ) {
+                await Page.Locator(selector).First.ScreenshotAsync(new LocatorScreenshotOptions() { Path = $"{screenshotFilePath}" });
+            }
+        }
+
         public async Task FillAsync(string selector, string value)
         {
             ValidatePage();
@@ -411,6 +424,25 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
             }
 
             logger.LogDebug("Logged in successfully.");
+        }
+
+        public async Task PauseAsync()
+        {
+            ValidatePage();
+            await Page.PauseAsync();
+        }
+
+        
+        public async Task WaitAsync(string locator)
+        {
+            ValidatePage();
+            await Page.Locator(locator).WaitForAsync();
+        }
+
+        public async Task<bool> ExistsAsync(string locator)
+        {
+            ValidatePage();
+            return await Page.Locator(locator).CountAsync() > 0;
         }
     }
 }

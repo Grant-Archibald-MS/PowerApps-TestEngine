@@ -179,6 +179,10 @@ namespace Microsoft.PowerApps.TestEngine.PowerApps
 
         public async Task CheckAndHandleIfLegacyPlayerAsync()
         {
+            if ( _testState.GetTestSettings().DisablePowerFxModel ) {
+                return;
+            }
+            
             try
             {
                 // See if using legacy player

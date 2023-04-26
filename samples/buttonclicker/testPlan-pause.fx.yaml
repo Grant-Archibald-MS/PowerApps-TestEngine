@@ -1,0 +1,24 @@
+testSuite:
+  testSuiteName: Button Clicker
+  testSuiteDescription: Use button clicker as example of manual interaction to inspect browser state
+  persona: User1
+  appLogicalName: new_buttonclicker_0a877
+  onTestCaseStart: Screenshot("buttonclicker_onTestCaseStart.png");
+  onTestCaseComplete: Select(ResetButton);
+  onTestSuiteComplete: Screenshot("buttonclicker_onTestSuiteComplete.png");
+
+  testCases:
+    - testCaseName: Pause Example
+      testCaseDescription: Pause test execution in headless mode
+      testSteps: |
+        = Pause();
+
+testSettings:
+  headless: true
+  locale: "en-US"
+  recordVideo: true
+  browserConfigurations:
+    - browser: Chromium
+
+environmentVariables:
+  filePath: ../../samples/environmentVariables.yaml
