@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -597,20 +598,24 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
                 ResponseDataFile = "response.json"
             };
 
+            LoggingTestHelper.SetupMock(MockLogger);
+            MockSingleTestInstanceState.Setup(x => x.GetLogger()).Returns(MockLogger.Object);
+            MockTestState.Setup(x => x.GetTestConfigFile()).Returns(new FileInfo(@"c:\testPlan.fx.yaml"));
             MockFileSystem.Setup(x => x.ReadAllText(mock.RequestBodyFile)).Returns(requestBody);
             MockRoute.Setup(x => x.Request).Returns(MockRequest.Object);
             MockRequest.Setup(x => x.Method).Returns(requestMethod);
             MockRequest.Setup(x => x.PostData).Returns(requestBody);
             MockRequest.Setup(x => x.HeaderValueAsync("x-ms-request-method")).Returns(Task.FromResult<string>("PATCH"));
+            MockRequest.Setup(x => x.Url).Returns("https://localhost");
             MockRoute.Setup(x => x.FulfillAsync(It.IsAny<RouteFulfillOptions>())).Returns(Task.FromResult<IResponse?>(MockResponse.Object));
             MockRoute.Setup(x => x.ContinueAsync(It.IsAny<RouteContinueOptions>())).Returns(Task.FromResult<IResponse?>(MockResponse.Object));
-
+            
             var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
                 MockFileSystem.Object, browserContext: MockBrowserContext.Object);
 
             // Test fulfilling route's request with given response
             await playwrightTestInfraFunctions.RouteNetworkRequest(MockRoute.Object, mock);
-            MockRoute.Verify(x => x.FulfillAsync(It.Is<RouteFulfillOptions>((option) => option.Path == mock.ResponseDataFile)), Times.Once);
+            MockRoute.Verify(x => x.FulfillAsync(It.Is<RouteFulfillOptions>((option) => option.Path == @"c:\response.json")), Times.Once);
 
             // Test continuing route's request without overrides
             MockRequest.Setup(x => x.HeaderValueAsync("x-ms-request-method")).Returns(Task.FromResult<string>("POST"));
@@ -673,11 +678,16 @@ Preference-Applied: odata.include-annotations=""*"",odata.maxpagesize=2000
                 ResponseDataFile = "response.json"
             };
 
+            LoggingTestHelper.SetupMock(MockLogger);
+            MockSingleTestInstanceState.Setup(x => x.GetLogger()).Returns(MockLogger.Object);
+            MockTestState.Setup(x => x.GetTestConfigFile()).Returns(new FileInfo(@"c:\testPlan.fx.yaml"));
             MockFileSystem.Setup(x => x.ReadAllText(mock.RequestBodyFile)).Returns(requestBody);
             MockFileSystem.Setup(x => x.ReadAllText(mock.ResponseDataFile)).Returns(responseBody);
             MockRoute.Setup(x => x.Request).Returns(MockRequest.Object);
             MockRequest.Setup(x => x.Method).Returns(requestMethod);
             MockRequest.Setup(x => x.PostData).Returns(requestBody);
+            MockRequest.Setup(x => x.Url).Returns("https://localhost");
+            MockFileSystem.Setup(x => x.ReadAllText(@"c:\response.json")).Returns("");
             MockRoute.Setup(x => x.FulfillAsync(It.IsAny<RouteFulfillOptions>())).Returns(Task.FromResult<IResponse?>(MockResponse.Object));
            
             var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,

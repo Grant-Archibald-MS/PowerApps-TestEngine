@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using Microsoft.PowerApps.TestEngine.Config;
@@ -107,6 +109,10 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
                 };
             }
 
+            if (!string.IsNullOrEmpty(_testState.GetTestSettings().Locale) ) {
+                contextOptions.Locale = _testState.GetTestSettings().Locale;
+            }
+
             BrowserContext = await Browser.NewContextAsync(contextOptions);
             _singleTestInstanceState.GetLogger().LogInformation("Browser context created");
         }
@@ -141,7 +147,13 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
                     throw new InvalidOperationException();
                 }
 
-                await Page.RouteAsync(mock.RequestURL, async route => await RouteNetworkRequest(route, mock));
+                var url = mock.RequestURL;
+                if ( !String.IsNullOrEmpty(url) && !url.StartsWith("http") )
+                {
+                    url = "**" + url;
+                }
+                
+                await Page.RouteAsync(url, async route => await RouteNetworkRequest(route, mock));
             }
         }
 
@@ -166,44 +178,60 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
                 foreach (var header in mock.Headers)
                 {
                     var requestHeaderValue = await route.Request.HeaderValueAsync(header.Key);
-                    notMatch = notMatch || !string.Equals(header.Value, requestHeaderValue);
+                    notMatch = notMatch || !string.Equals(header.Value, requestHeaderValue) || !Regex.IsMatch(header.Value, requestHeaderValue);
                 }
             }
 
-            if ( !string.IsNullOrEmpty(mock.BatchRequestURL)) {
-                using ( var reader = new StringReader(route.Request.PostData)) {
-                    bool found = false;
-                    while ( reader.Peek() > 0 && !found ) {
-                        var line = reader.ReadLine();
-                        if ( line.StartsWith("GET ") && line.Contains(mock.BatchRequestURL))
-                        {
-                            found = true;
+            if ( !string.IsNullOrEmpty(mock.BatchRequestURL) ) {
+                if ( !string.IsNullOrEmpty(route.Request.PostData) ) {
+                    using ( var reader = new StringReader(route.Request.PostData)) {
+                        bool found = false;
+                        while ( reader.Peek() > 0 && !found ) {
+                            var line = reader.ReadLine();
+                            if ( line.StartsWith("GET ") && line.Contains(mock.BatchRequestURL))
+                            {
+                                _singleTestInstanceState.GetLogger().LogTrace("Route replace " + line);
+                                found = true;
+                            }
                         }
+                        notMatch = notMatch || !found;
                     }
-                    notMatch = notMatch || !found;
+                }
+                else {
+                    notMatch = true;
                 }
             }
 
             if (!notMatch)
-            {
-                if ( !string.IsNullOrEmpty(mock.BatchRequestURL)) {
-                    var body = _fileSystem.ReadAllText(mock.ResponseDataFile);
+            { 
+                if ( !string.IsNullOrEmpty(mock.BatchRequestURL) ) {
+                    var body = _fileSystem.ReadAllText(GetFullFile(mock.ResponseDataFile));
                     var request = route.Request.PostData;
                     
                     using ( var reader = new StringReader(request)) {
                         var batchId = await reader.ReadLineAsync();
                         var batchResponseId = batchId.Replace("--batch_","--batchresponse_");
                         body = batchResponseId + "\r\n" + body + "\r\n" + batchResponseId + "--";
+                        _singleTestInstanceState.GetLogger().LogTrace(route.Request.Url);
                         await route.FulfillAsync(new RouteFulfillOptions { Body = body });
                     }
                 } else {
-                    await route.FulfillAsync(new RouteFulfillOptions { Path = mock.ResponseDataFile });
+                    _singleTestInstanceState.GetLogger().LogTrace("Replace " + route.Request.Url + " with " + Path.GetFileName(mock.ResponseDataFile));
+                    await route.FulfillAsync(new RouteFulfillOptions { Path = GetFullFile(mock.ResponseDataFile) });
                 } 
             }
             else
             {
                 await route.ContinueAsync();
             }
+        }
+
+        private string GetFullFile(string filename) {
+            var testResultDirectory = Path.GetDirectoryName(_testState.GetTestConfigFile().FullName);
+            if ( !Path.IsPathRooted(filename) ) {
+                filename = Path.Combine(testResultDirectory, filename); 
+            }
+            return filename;
         }
 
         public async Task GoToUrlAsync(string url)

@@ -1,0 +1,34 @@
+testSuite:
+  testSuiteName: testPlan Template
+  testSuiteDescription: testPlan template for written own test steps
+  persona: User1
+  appLogicalName: new_buttonclicker_0a877
+  onTestSuiteComplete: Screenshot("playwrightaction_onTestSuiteComplete.png");
+
+
+  testCases:
+    - testCaseName: Navigate Example
+      testCaseDescription: Navigate example
+      testSteps: |
+        = PlaywrightAction("DisablePowerFxModel", "true");
+          PlaywrightAction("https://make.powerapps.com", "Navigate");
+          PlaywrightAction("Sleep", "60000");
+          PlaywrightAction("span:has-text('Power Apps')", "Wait");
+          If(PlaywrightAction("[aria-label='AIFeaturesWaitlistDialog\.Close']","Exists"),PlaywrightAction("[aria-label='AIFeaturesWaitlistDialog\.Close']", "Click"));
+          PlaywrightAction("[aria-label='Learn'] >> text=Learn", "Click");
+          PlaywrightActionValue("div[role='main'] div:has-text('Overview Courses Articles Community Support')", "Screenshot", "test1.png");
+          Pause();
+
+testSettings:
+  headless: false
+  locale: fr-FR
+  recordVideo: true
+  browserConfigurations:
+    - browser: Chromium
+
+environmentVariables:
+  users:
+    - personaName: User1
+      emailKey: user1Email
+      passwordKey: user1Password
+

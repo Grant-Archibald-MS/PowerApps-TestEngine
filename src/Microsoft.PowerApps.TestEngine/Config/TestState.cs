@@ -20,6 +20,8 @@ namespace Microsoft.PowerApps.TestEngine.Config
 
         private string OutputDirectory { get; set; }
 
+        private FileInfo TestConfigFile { get; set; }
+
         private bool IsValid { get; set; } = false;
 
         public TestState(ITestConfigParser testConfigParser)
@@ -45,6 +47,7 @@ namespace Microsoft.PowerApps.TestEngine.Config
             }
 
             TestPlanDefinition = _testConfigParser.ParseTestConfig<TestPlanDefinition>(testConfigFile);
+            
             if (TestPlanDefinition.TestSuite != null)
             {
                 TestCases = TestPlanDefinition.TestSuite.TestCases;
@@ -83,8 +86,9 @@ namespace Microsoft.PowerApps.TestEngine.Config
                 }
             }
 
+
             if (TestPlanDefinition.TestSettings == null)
-            {
+            {                
                 throw new InvalidOperationException("Missing test settings from test plan");
             }
             else if (!string.IsNullOrEmpty(TestPlanDefinition.TestSettings.FilePath))
@@ -127,6 +131,7 @@ namespace Microsoft.PowerApps.TestEngine.Config
                 throw new InvalidOperationException("At least one user must be specified");
             }
 
+            
             foreach (var userConfig in TestPlanDefinition.EnvironmentVariables.Users)
             {
                 if (string.IsNullOrEmpty(userConfig.PersonaName))
@@ -144,7 +149,7 @@ namespace Microsoft.PowerApps.TestEngine.Config
                     throw new InvalidOperationException("Missing password key");
                 }
             }
-
+            
             if (TestPlanDefinition.EnvironmentVariables.Users.Where(x => x.PersonaName == TestPlanDefinition.TestSuite?.Persona).FirstOrDefault() == null)
             {
                 throw new InvalidOperationException("Persona specified in test is not listed in environment variables");
@@ -205,6 +210,19 @@ namespace Microsoft.PowerApps.TestEngine.Config
         public string GetOutputDirectory()
         {
             return OutputDirectory;
+        }
+
+        public void SetTestConfigFile(FileInfo testConfig)
+        {
+            if (testConfig == null)
+            {
+                throw new ArgumentNullException(nameof(testConfig));
+            }
+            TestConfigFile = testConfig;
+        }
+        public FileInfo GetTestConfigFile()
+        {
+            return TestConfigFile;
         }
 
         public UserConfiguration GetUserConfiguration(string persona)
