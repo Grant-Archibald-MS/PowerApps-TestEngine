@@ -109,8 +109,8 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
                 };
             }
 
-            if (!string.IsNullOrEmpty(_testState.GetTestSettings().Locale) ) {
-                contextOptions.Locale = _testState.GetTestSettings().Locale;
+            if (!string.IsNullOrEmpty(testSettings.Locale) ) {
+                contextOptions.Locale = testSettings.Locale;
             }
 
             BrowserContext = await Browser.NewContextAsync(contextOptions);
@@ -460,6 +460,11 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
             await Page.PauseAsync();
         }
 
+        public async Task ReloadAsync()
+        {
+            ValidatePage();
+            await Page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        }
         
         public async Task WaitAsync(string locator)
         {
@@ -470,7 +475,22 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         public async Task<bool> ExistsAsync(string locator)
         {
             ValidatePage();
-            return await Page.Locator(locator).CountAsync() > 0;
+            var match = await Page.Locator(locator).CountAsync() > 0;
+
+            if ( !match )
+            {
+                // Search frames as the locator may exist inside an iframe
+                foreach ( var frame in Page.Frames )
+                {
+                    match = await frame.Locator(locator).CountAsync() > 0;
+                    if ( match )
+                    {
+                        return match;
+                    }
+                }
+            }
+
+            return match;
         }
     }
 }

@@ -34,6 +34,8 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
         private Mock<IElementHandle> MockElementHandle;
         private Mock<ILogger> MockLogger;
         private Mock<ILoggerFactory> MockLoggerFactory;
+        private Mock<ILocator> MockLocator;
+        private Mock<IFrame> MockFrame;
 
         public PlaywrightTestInfraFunctionTests()
         {
@@ -52,6 +54,8 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
             MockLogger = new Mock<ILogger>(MockBehavior.Strict);
             MockLoggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
             MockElementHandle = new Mock<IElementHandle>(MockBehavior.Strict);
+            MockLocator = new Mock<ILocator>(MockBehavior.Strict);
+            MockFrame = new Mock<IFrame>(MockBehavior.Strict);
         }
 
         [Theory]
@@ -697,5 +701,64 @@ Preference-Applied: odata.include-annotations=""*"",odata.maxpagesize=2000
             await playwrightTestInfraFunctions.RouteNetworkRequest(MockRoute.Object, mock);
         }
 
+        [Fact]
+        public async Task ReloadTest()
+        {
+            MockPage.Setup(x => x.ReloadAsync(It.IsAny<PageReloadOptions>())).Returns(Task.FromResult<IResponse?>(MockResponse.Object));
+            
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, browserContext: MockBrowserContext.Object, page: MockPage.Object);
+            await playwrightTestInfraFunctions.ReloadAsync();
+
+            MockPage.Verify(x => x.ReloadAsync(It.Is<PageReloadOptions>((options) => options.WaitUntil == WaitUntilState.NetworkIdle)), Times.Once);
+        }
+
+
+        [Fact]
+        public async Task ExistsMatchTest()
+        {
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(1));
+            MockPage.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(MockLocator.Object);
+
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, browserContext: MockBrowserContext.Object, page: MockPage.Object);
+            var result = await playwrightTestInfraFunctions.ExistsAsync("FOO");
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task ExistsFrameMatchTest()
+        {
+            var mockFrameLocator = new Mock<ILocator>();
+            mockFrameLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(1));
+            MockFrame.Setup(x => x.Locator(It.Is<string>(e => e.Equals("FOO")), null)).Returns(mockFrameLocator.Object);
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(0));
+            MockPage.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(MockLocator.Object);
+            MockPage.Setup(x => x.Frames).Returns(new List<IFrame>() { MockFrame.Object });
+
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, browserContext: MockBrowserContext.Object, page: MockPage.Object);
+            var result = await playwrightTestInfraFunctions.ExistsAsync("FOO");
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task ExistsFrameNoMatchTest()
+        {
+            var mockFrameLocator = new Mock<ILocator>();
+            mockFrameLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(0));
+            MockFrame.Setup(x => x.Locator(It.Is<string>(e => e.Equals("FOO")), null)).Returns(mockFrameLocator.Object);
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(0));
+            MockPage.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(MockLocator.Object);
+            MockPage.Setup(x => x.Frames).Returns(new List<IFrame>() { MockFrame.Object });
+
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, browserContext: MockBrowserContext.Object, page: MockPage.Object);
+            var result = await playwrightTestInfraFunctions.ExistsAsync("FOO");
+
+            Assert.False(result);
+        }
     }
 }

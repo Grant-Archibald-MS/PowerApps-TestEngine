@@ -55,6 +55,8 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx
             powerFxConfig.AddFunction(new AssertFunction(Logger));
             powerFxConfig.AddFunction(new SetPropertyFunction(_powerAppFunctions, Logger));
             powerFxConfig.AddFunction(new PauseFunction(_testInfraFunctions, _testState, Logger));
+            powerFxConfig.AddFunction(new ReloadFunction(_testInfraFunctions, _testState, Logger));
+            powerFxConfig.AddFunction(new ReadyFunction(_powerAppFunctions, _testState, _singleTestInstanceState, Logger));
             powerFxConfig.AddFunction(new PlaywrightActionFunction(_testInfraFunctions, _testState, Logger));
             powerFxConfig.AddFunction(new PlaywrightActionValueFunction(_testInfraFunctions, _singleTestInstanceState, _fileSystem, _testState, Logger));
             
