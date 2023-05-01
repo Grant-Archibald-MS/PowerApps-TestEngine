@@ -511,6 +511,8 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
             var selector = "input[type =\"email\"]";
             var value = "hello";
 
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(1));
+            MockPage.Setup(x => x.Locator(selector, null)).Returns(MockLocator.Object);
             MockPage.Setup(x => x.FillAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<PageFillOptions?>())).Returns(Task.CompletedTask);
 
             var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
@@ -525,13 +527,38 @@ namespace Microsoft.PowerApps.TestEngine.Tests.TestInfra
         {
             var selector = "input[type =\"email\"]";
 
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(1));
             MockPage.Setup(x => x.ClickAsync(It.IsAny<string>(), It.IsAny<PageClickOptions?>())).Returns(Task.CompletedTask);
+            MockPage.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(MockLocator.Object);
 
             var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
                 MockFileSystem.Object, page: MockPage.Object);
             await playwrightTestInfraFunctions.ClickAsync(selector);
 
             MockPage.Verify(x => x.ClickAsync(selector, null), Times.Once());
+        }
+
+        [Fact]
+        public async Task ClickAsyncFrameSuccessfulTest()
+        {
+            var selector = "input[type =\"email\"]";
+
+            var frameLocatorMock = new Mock<ILocator>();
+
+            MockLocator.Setup(x => x.CountAsync()).Returns(Task.FromResult(0));
+            frameLocatorMock.Setup(x => x.CountAsync()).Returns(Task.FromResult(1));
+
+            MockFrame.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(frameLocatorMock.Object);
+            MockFrame.Setup(x => x.ClickAsync(It.IsAny<string>(), null)).Returns(Task.CompletedTask);
+
+            MockPage.Setup(x => x.Locator(It.IsAny<string>(), null)).Returns(MockLocator.Object);
+            MockPage.Setup(x => x.Frames).Returns(new List<IFrame> { MockFrame.Object });
+            
+            var playwrightTestInfraFunctions = new PlaywrightTestInfraFunctions(MockTestState.Object, MockSingleTestInstanceState.Object,
+                MockFileSystem.Object, page: MockPage.Object);
+            await playwrightTestInfraFunctions.ClickAsync(selector);
+
+            MockFrame.Verify(x => x.ClickAsync(It.Is<string>(v => v.Equals(selector)), null), Times.Once());
         }
 
         [Fact]

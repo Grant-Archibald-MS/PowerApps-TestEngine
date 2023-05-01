@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 using Microsoft.Extensions.Logging;
@@ -44,6 +44,9 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx.Functions
             }
 
             switch ( action.Value.ToLower() ) {
+                case "fill":
+                    _testInfraFunctions.FillAsync(locator.Value, value.Value).Wait();
+                    break;
                 case "screenshot":
                     var testResultDirectory = _singleTestInstanceState.GetTestResultsDirectory();
                     if (!_fileSystem.IsValidFilePath(testResultDirectory))

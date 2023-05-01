@@ -317,13 +317,39 @@ namespace Microsoft.PowerApps.TestEngine.TestInfra
         public async Task FillAsync(string selector, string value)
         {
             ValidatePage();
-            await Page.FillAsync(selector, value);
+            if (await Page.Locator(selector).CountAsync() == 0)
+            {
+                foreach (var frame in Page.Frames)
+                {
+                    if (await frame.Locator(selector).CountAsync() > 0)
+                    {
+                        await frame.FillAsync(selector, value);
+                    }
+                }
+            }
+            else
+            {
+                await Page.FillAsync(selector, value);
+            }
         }
 
         public async Task ClickAsync(string selector)
         {
             ValidatePage();
-            await Page.ClickAsync(selector);
+            if ( await Page.Locator(selector).CountAsync() == 0)
+            {
+                foreach (var frame in Page.Frames ) {
+                    if ( await frame.Locator(selector).CountAsync() > 0 )
+                    {
+                        await frame.ClickAsync(selector);
+                    } 
+                }
+            }
+            else
+            {
+                await Page.ClickAsync(selector);
+            }
+            
         }
 
         public async Task AddScriptTagAsync(string scriptTag, string frameName)
