@@ -53,10 +53,6 @@ namespace Microsoft.PowerApps.TestEngine.PowerFx
             symbols.EnableMutationFunctions();
             powerFxConfig.SymbolTable = symbols;
 
-            //TODO: Remove
-            powerFxConfig.EnableSetFunction();
-            //TODO: End
-
             powerFxConfig.AddFunction(new SelectOneParamFunction(_testWebProvider, async () => await UpdatePowerFxModelAsync(), Logger));
             powerFxConfig.AddFunction(new SelectTwoParamsFunction(_testWebProvider, async () => await UpdatePowerFxModelAsync(), Logger));
             powerFxConfig.AddFunction(new SelectThreeParamsFunction(_testWebProvider, async () => await UpdatePowerFxModelAsync(), Logger));
